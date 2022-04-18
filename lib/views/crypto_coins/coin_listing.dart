@@ -22,17 +22,10 @@ class CoinListingView extends StatefulWidget {
 class _CoinListingViewState extends State<CoinListingView> {
   @override
   void initState() {
-    checkInternetConnection();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       getDataFromApi();
     });
     super.initState();
-  }
-
-  bool internetStatus = false;
-
-  checkInternetConnection() async {
-    await ConnectivityUtilities.checkInternetConnectivity().then((value) => {internetStatus = value!});
   }
 
   getDataFromApi() async {
@@ -58,86 +51,83 @@ class _CoinListingViewState extends State<CoinListingView> {
     SizeConfig().init(context);
     return Consumer<CoinsListingVm>(builder: (context, coinVm, _) {
       return Scaffold(
-        appBar: AppBar(
-          // backgroundColor: AppColors.appPrimaryBlueColor,
-          elevation: 0.0,
-          leading: null,
-          title: Text(
-            AppStrings.appTitle,
-            style: TextStyle(
-              color: AppColors.kWhiteColor,
-              fontSize: SizeConfig.screenHeight! * 0.03,
-              // fontWeight: FontWeight.w600,
+          appBar: AppBar(
+            // backgroundColor: AppColors.appPrimaryBlueColor,
+            elevation: 0.0,
+            leading: null,
+            title: Text(
+              AppStrings.appTitle,
+              style: TextStyle(
+                color: AppColors.kWhiteColor,
+                fontSize: SizeConfig.screenHeight! * 0.03,
+                // fontWeight: FontWeight.w600,
+              ),
             ),
+            actions: [
+              PopupMenuButton(
+                onSelected: (value) {
+                  switch (value) {
+                    case "sortBySymbol":
+                      print('sortBySymbol');
+                      coinVm.sortListBySymbol();
+                      break;
+                    case "sortByLastPrice":
+                      print('sortByLastPrice');
+                      coinVm.sortListByLastPrice();
+                      break;
+                  }
+                },
+                itemBuilder: (BuildContext context) => [
+                  const PopupMenuItem(
+                    child: Text('Sort List By Symbol'),
+                    value: 'sortBySymbol',
+                  ),
+                  const PopupMenuItem(
+                    child: Text('Sort List By Last Price'),
+                    value: 'sortByLastPrice',
+                  ),
+                ],
+              )
+            ],
           ),
-          actions: [
-            PopupMenuButton(
-              onSelected: (value) {
-                switch (value) {
-                  case "sortBySymbol":
-                    print('sortBySymbol');
-                    coinVm.sortListBySymbol();
-                    break;
-                  case "sortByLastPrice":
-                    print('sortByLastPrice');
-                    coinVm.sortListByLastPrice();
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem(
-                  child: Text('Sort List By Symbol'),
-                  value: 'sortBySymbol',
-                ),
-                const PopupMenuItem(
-                  child: Text('Sort List By Last Price'),
-                  value: 'sortByLastPrice',
-                ),
-              ],
-            )
-          ],
-        ),
-        body: internetStatus
-            ? Container(
-                color: AppColors.kSecondaryTextColor.withOpacity(0.3),
-                height: SizeConfig.screenHeight,
-                padding: EdgeInsets.all(SizeConfig.screenHeight! * 0.02),
-                child: coinVm.coinsList.length == 0
-                    ? Center(
-                        child: Text("Please Wait..",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.kTextColorGrey,
-                              fontSize: SizeConfig.defaultSize! * 2.5,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                            )),
-                      )
-                    : ListView.builder(
-                        itemCount: coinVm.coinsList.length,
-                        itemBuilder: (context, index) {
-                          CoinModel coin = coinVm.coinsList[index];
-                          return CoinListTile(
-                            coinModel: coin,
-                            onTilePressed: () {
-                              // onTilePressed(filesQueueProvider.filesQueueList[index]);
-                              // Navigator.pushNamed(
-                              //   context,
-                              //   CoinsDetailsView.routeName,
-                              // );
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CoinsDetailsView(
-                                          coinModel: coin,
-                                          index: index,
-                                        )),
-                              );
-                            },
-                          );
-                        }))
-            : getInternetUnAvailableStamp(),
-      );
+          body: Container(
+              color: AppColors.kSecondaryTextColor.withOpacity(0.3),
+              height: SizeConfig.screenHeight,
+              padding: EdgeInsets.all(SizeConfig.screenHeight! * 0.02),
+              child: coinVm.coinsList.length == 0
+                  ? Center(
+                      child: Text("Please Wait..",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.kTextColorGrey,
+                            fontSize: SizeConfig.defaultSize! * 2.5,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                          )),
+                    )
+                  : ListView.builder(
+                      itemCount: coinVm.coinsList.length,
+                      itemBuilder: (context, index) {
+                        CoinModel coin = coinVm.coinsList[index];
+                        return CoinListTile(
+                          coinModel: coin,
+                          onTilePressed: () {
+                            // onTilePressed(filesQueueProvider.filesQueueList[index]);
+                            // Navigator.pushNamed(
+                            //   context,
+                            //   CoinsDetailsView.routeName,
+                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CoinsDetailsView(
+                                        coinModel: coin,
+                                        index: index,
+                                      )),
+                            );
+                          },
+                        );
+                      })));
     });
   }
 }

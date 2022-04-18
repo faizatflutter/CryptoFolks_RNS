@@ -5,24 +5,30 @@ import 'package:http/http.dart';
 import 'package:rns_flutter_task/constants/app_constants.dart';
 import 'package:rns_flutter_task/data/models/coin_model.dart';
 import 'package:rns_flutter_task/data/models/order_model.dart';
+import 'package:rns_flutter_task/utilities/connectivity_utilities.dart';
 
 class WebService {
   static Future<List<CoinModel>> fetchCoinsDetailsFromApis() async {
-    final responseFromWazirX = await http.get(Uri.parse(AppConstants.wazirxBaseUrl));
-    final responseFromBinance = await http.get(Uri.parse(AppConstants.binanceBaseUrl));
-    if (responseFromWazirX.statusCode == 200 || responseFromBinance.statusCode == 200) {
-      final Iterable wazirXIterable = jsonDecode(responseFromWazirX.body.toString());
-      final Iterable binanceIterable = jsonDecode(responseFromBinance.body.toString());
-      List<CoinModel> coinListFromWazirX = wazirXIterable.map((coin) => CoinModel.fromJsonWazirX(coin)).toList();
-      List<CoinModel> coinListFromBinance = binanceIterable.map((coin) => CoinModel.fromJsonBinance(coin)).toList();
-      List<CoinModel> allCoinsList = [];
+    if (await ConnectivityUtilities.checkInternetConnectivity() == true) {
+      final responseFromWazirX = await http.get(Uri.parse(AppConstants.wazirxBaseUrl));
+      final responseFromBinance = await http.get(Uri.parse(AppConstants.binanceBaseUrl));
+      if (responseFromWazirX.statusCode == 200 || responseFromBinance.statusCode == 200) {
+        final Iterable wazirXIterable = jsonDecode(responseFromWazirX.body.toString());
+        final Iterable binanceIterable = jsonDecode(responseFromBinance.body.toString());
+        List<CoinModel> coinListFromWazirX = wazirXIterable.map((coin) => CoinModel.fromJsonWazirX(coin)).toList();
+        List<CoinModel> coinListFromBinance = binanceIterable.map((coin) => CoinModel.fromJsonBinance(coin)).toList();
+        List<CoinModel> allCoinsList = [];
 
-      allCoinsList.addAll(coinListFromWazirX);
-      allCoinsList.addAll(coinListFromBinance);
+        allCoinsList.addAll(coinListFromWazirX);
+        allCoinsList.addAll(coinListFromBinance);
 
-      return allCoinsList;
+        return allCoinsList;
+      } else {
+        throw Exception("Unable to perform request!");
+      }
     } else {
-      throw Exception("Unable to perform request!");
+      EasyLoading.showToast("Please Check Your Internet Connection!");
+      return [];
     }
   }
 
@@ -56,20 +62,17 @@ class WebService {
       print('resp Status Code: $statusCode');
 
       if (statusCode == 200) {
-
         String responseBody = response.body;
         print('resp : $responseBody');
-        if (response!= null) {
+        if (response != null) {
           return response;
         }
       } else {
         EasyLoading.isShow ? EasyLoading.dismiss() : null;
       }
-
     } catch (e) {
       print('This is an error while posting: $e');
       EasyLoading.isShow ? EasyLoading.dismiss() : null;
-
     }
   }
 }
